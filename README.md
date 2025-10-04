@@ -1,8 +1,4 @@
-Got it! You want a **Markdown document for your entire project** (HR Ledger backend) that includes the **project description, folder structure, Git workflow issue, and recovery steps**. Here’s a full `.md` draft you can use:
 
----
-
-```markdown
 # HR Ledger Backend Project
 
 ## Project Overview
@@ -146,6 +142,6 @@ This ensures that project files are safely versioned and recoverable for future 
 
 ```
 
----
+
 
 
