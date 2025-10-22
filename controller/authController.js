@@ -1,7 +1,11 @@
 const User = require('../models/user');
 
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
 
-exports.registerUser = async (req, res) => {
+
+
+const registerUser = async (req, res) => {
     try {
         const { email, password } = req.body;
         
@@ -32,7 +36,7 @@ exports.registerUser = async (req, res) => {
 };
 
 
-exports.loginUser = async (req, res) => {
+const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
         
@@ -65,6 +69,41 @@ exports.loginUser = async (req, res) => {
         });
     }
 };
+
+
+const googleAuth = (req, res, next) => {
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'] 
+  })(req, res, next);
+};
+
+const googleAuthCallback = (req, res, next) => {
+  passport.authenticate('google', { 
+    failureRedirect: '/login',
+    session: false 
+  }, (err, user) => {
+    if (err || !user) {
+      return res.redirect('http://localhost:4200?error=auth_failed');
+    }
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+    
+    // Redirect to Angular app with token
+    res.redirect(`http://localhost:4200/auth/callback?token=${token}&email=${user.email}`);
+  })(req, res, next);
+};
+
+
+module.exports={
+    registerUser,loginUser,googleAuth,googleAuthCallback
+
+}
+
 
 
 
