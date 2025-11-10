@@ -1,13 +1,14 @@
 const express = require('express');
-const trouter = express.Router(); 
+const router = express.Router();
 const traineeController = require('../controller/traineeController');
 
-trouter.post('/', traineeController.createTrainee);
-trouter.get('/', traineeController.getAllTrainees);
-trouter.get('/:id', traineeController.getTraineeById);
-trouter.put('/:id', traineeController.updateTrainee);
-trouter.delete('/:id', traineeController.deleteTrainee);
-trouter.delete('/name/:name', traineeController.deleteTraineebyName);
-trouter.get('/status/:status', traineeController.getTraineesByStatus);
+router.post('/', traineeController.createTrainee);
+router.post('/bulk', traineeController.createMultipleTrainees);
+router.get('/', traineeController.getAllTrainees);
+router.get('/dashboard', traineeController.getDashboardMetrics);
+router.get('/status/:status', traineeController.getTraineesByStatus);
+router.get('/:id', traineeController.getTraineeById);
+router.put('/:id', traineeController.updateTrainee);
+router.delete('/:id', traineeController.deleteTrainee);
 
-module.exports = trouter; 
+module.exports = router;

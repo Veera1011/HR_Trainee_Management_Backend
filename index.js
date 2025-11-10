@@ -1,15 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const auth=require('./routes/authroutes');
-const trainee=require('./routes/traineeroutes')
+const auth = require('./routes/authroutes');
+const trainee = require('./routes/traineeroutes');
+const employee = require('./routes/employeeroutes');
+const training = require('./routes/Trainee');
 require('dotenv').config();
 const session = require('express-session');
 const passport = require('./config/passport');
 
-
 const app = express();
-
 
 app.use(cors({
   origin: 'http://localhost:4200',
@@ -17,10 +17,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-
-
-mongoose.connect(process.env.MONGO_URI , {
-})
+mongoose.connect(process.env.MONGO_URI, {});
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-session-secret',
@@ -35,90 +32,12 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/trainees', trainee );
 app.use('/auth', auth);
-
-
-
+app.use('/trainees', trainee);
+app.use('/employees', employee);
+app.use('/trainings', training);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// app.use((err, req, res, next) => {
-//     console.error(err.stack);
-//     res.status(500).json({
-//         success: false,
-//         message: 'Something went wrong!',
-//         error: err.message
-//     });
-// });
-
-//app.use(express.urlencoded({ extended: true }));
-// app.get('/', (req, res) => {
-//     res.json({
-//         message: 'HR Trainees Management API',
-//         endpoints: {
-//             trainees: '/api/trainees',
-//             users: '/api/users'
-//         }
-//     });
-// });

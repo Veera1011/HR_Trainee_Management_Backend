@@ -1,0 +1,28 @@
+ {
+  id: '109403178286207798372',
+  displayName: 'Veera',
+  name: { familyName: undefined, givenName: 'Veera' },
+  emails: [ { value: 'veerapersonal5603@gmail.com', verified: true } ],
+  photos: [
+    {
+      value: 'https://lh3.googleusercontent.com/a/ACg8ocLfNy8o80cPRzRB2N3hrMTzGNb22VMFqEjON9mwTDTnV12F=s96-c'
+    }
+  ],
+  provider: 'google',
+  _raw: '{\n' +
+    '  "sub": "109403178286207798372",\n' +
+    '  "name": "Veera",\n' +
+    '  "given_name": "Veera",\n' +
+    '  "picture": "https://lh3.googleusercontent.com/a/ACg8ocLfNy8o80cPRzRB2N3hrMTzGNb22VMFqEjON9mwTDTnV12F\\u003ds96-c",\n' +
+    '  "email": "veerapersonal5603@gmail.com",\n' +
+    '  "email_verified": true\n' +
+    '}',
+  _json: {
+    sub: '109403178286207798372',
+    name: 'Veera',
+    given_name: 'Veera',
+    picture: 'https://lh3.googleusercontent.com/a/ACg8ocLfNy8o80cPRzRB2N3hrMTzGNb22VMFqEjON9mwTDTnV12F=s96-c',
+    email: 'veerapersonal5603@gmail.com',
+    email_verified: true
+  }
+}

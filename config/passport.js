@@ -9,14 +9,17 @@ passport.use(new GoogleStrategy({
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
-      // Check if user already exists
+
+      
+      
+      
       let user = await User.findOne({ email: profile.emails[0].value });
       
       if (user) {
         return done(null, user);
       }
       
-      // Create new user
+      
       user = new User({
         email: profile.emails[0].value,
         googleId: profile.id,
@@ -32,17 +35,26 @@ passport.use(new GoogleStrategy({
   }
 ));
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
 
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (error) {
-    done(error, null);
-  }
-});
+
 
 module.exports = passport;
+
+
+
+
+
+
+
+// passport.serializeUser((user, done) => {
+//   done(null, user.id);
+// });
+
+// passport.deserializeUser(async (id, done) => {
+//   try {
+//     const user = await User.findById(id);
+//     done(null, user);
+//   } catch (error) {
+//     done(error, null);
+//   }
+// });

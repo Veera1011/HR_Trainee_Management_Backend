@@ -56,10 +56,19 @@ const loginUser = async (req, res) => {
             });
         }
 
+        const token =(user)=>{
+          return  jwt.sign(
+                {user},
+                 process.env.JWT_SECRET ,
+                { expiresIn: '24h' }
+            )
+        }
+        const usertoken=token(user);
+
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            data: { id: user._id, email: user.email }
+             data: { id: user._id, email: user.email,token:usertoken }
         });
     } catch (error) {
         res.status(500).json({
@@ -86,14 +95,14 @@ const googleAuthCallback = (req, res, next) => {
       return res.redirect('http://localhost:4200?error=auth_failed');
     }
     
-    // Generate JWT token
+   
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET ,
       { expiresIn: '24h' }
     );
     
-    // Redirect to Angular app with token
+    
     res.redirect(`http://localhost:4200/auth/callback?token=${token}&email=${user.email}`);
   })(req, res, next);
 };
