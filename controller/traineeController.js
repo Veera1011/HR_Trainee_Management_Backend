@@ -2,7 +2,6 @@ const Trainee = require('../models/trainees');
 const Employee = require('../models/Employee');
 const Training = require('../models/training');
 
-
 const generateTraineeId = async () => {
   const lastTrainee = await Trainee.findOne().sort({ createdAt: -1 });
   if (!lastTrainee) return 'TRN001';
@@ -10,7 +9,6 @@ const generateTraineeId = async () => {
   const lastId = parseInt(lastTrainee.traineeId.replace('TRN', ''));
   return `TRN${String(lastId + 1).padStart(3, '0')}`;
 };
-
 
 exports.createTrainee = async (req, res) => {
   try {
@@ -43,10 +41,11 @@ exports.createTrainee = async (req, res) => {
   }
 };
 
-
 exports.createMultipleTrainees = async (req, res) => {
   try {
     const traineesData = req.body.trainees;
+    
+    console.log('Received trainees data:', JSON.stringify(traineesData, null, 2));
     
     if (!Array.isArray(traineesData) || traineesData.length === 0) {
       return res.status(400).json({
@@ -62,31 +61,96 @@ exports.createMultipleTrainees = async (req, res) => {
 
     for (const traineeData of traineesData) {
       try {
-    
-        const existingTrainee = await Trainee.findOne({
-          employeeId: traineeData.employeeId,
-          trainingCode: traineeData.trainingCode,
-          startDate: new Date(traineeData.startDate)
-        });
-
-        if (existingTrainee) {
+        console.log('Processing trainee:', traineeData);
+        
+        // Verify employee exists
+        const employee = await Employee.findOne({ employeeId: traineeData.employeeId });
+        if (!employee) {
           results.failed.push({
             data: traineeData,
-            reason: 'Duplicate: Already enrolled in this training'
+            reason: `Employee ${traineeData.employeeId} not found`
           });
           continue;
         }
 
+        // Verify training exists
+        const training = await Training.findOne({ trainingCode: traineeData.trainingCode });
+        if (!training) {
+          results.failed.push({
+            data: traineeData,
+            reason: `Training ${traineeData.trainingCode} not found`
+          });
+          continue;
+        }
+
+        // Parse the date from the string format (YYYY-MM-DD)
+        const startDate = new Date(traineeData.startDate);
+        startDate.setHours(0, 0, 0, 0); // Normalize to midnight
+
+        console.log('Checking for duplicates with:', {
+          employeeId: traineeData.employeeId,
+          trainingCode: traineeData.trainingCode,
+          startDate: startDate
+        });
+
+        // Check for duplicates with date range to avoid time comparison issues
+        const startOfDay = new Date(startDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(startDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const existingTrainee = await Trainee.findOne({
+          employeeId: traineeData.employeeId,
+          trainingCode: traineeData.trainingCode,
+          startDate: {
+            $gte: startOfDay,
+            $lte: endOfDay
+          }
+        });
+
+        if (existingTrainee) {
+          console.log('Duplicate found:', existingTrainee.traineeId);
+          results.failed.push({
+            data: traineeData,
+            reason: 'Duplicate: Already enrolled in this training on this date'
+          });
+          continue;
+        }
+
+        // Generate trainee ID
         const traineeId = await generateTraineeId();
-        const trainee = new Trainee({ ...traineeData, traineeId });
+        
+        // Prepare trainee object
+        const newTraineeData = {
+          traineeId,
+          employeeId: traineeData.employeeId,
+          trainingCode: traineeData.trainingCode,
+          startDate: startDate,
+          status: traineeData.status || 'Pending',
+          completionPercentage: traineeData.completionPercentage || 0,
+          remarks: traineeData.remarks || ''
+        };
+
+        // Add endDate if provided
+        if (traineeData.endDate) {
+          const endDate = new Date(traineeData.endDate);
+          endDate.setHours(0, 0, 0, 0);
+          newTraineeData.endDate = endDate;
+        }
+
+        console.log('Creating trainee with data:', newTraineeData);
+
+        const trainee = new Trainee(newTraineeData);
         const savedTrainee = await trainee.save();
         
         const populatedTrainee = await Trainee.findById(savedTrainee._id)
           .populate('employeeId', 'employeeId employeeName email')
           .populate('trainingCode', 'trainingCode trainingName stack');
         
+        console.log('Successfully created trainee:', populatedTrainee.traineeId);
         results.success.push(populatedTrainee);
       } catch (error) {
+        console.error('Error creating trainee:', error);
         results.failed.push({
           data: traineeData,
           reason: error.message
@@ -94,12 +158,18 @@ exports.createMultipleTrainees = async (req, res) => {
       }
     }
 
+    console.log('Final results:', {
+      successCount: results.success.length,
+      failedCount: results.failed.length
+    });
+
     res.status(201).json({
       success: true,
       message: `Created ${results.success.length} trainees, ${results.failed.length} failed`,
       data: results
     });
   } catch (error) {
+    console.error('Error in createMultipleTrainees:', error);
     res.status(400).json({
       success: false,
       message: 'Error creating trainees',
@@ -107,7 +177,6 @@ exports.createMultipleTrainees = async (req, res) => {
     });
   }
 };
-
 
 exports.getAllTrainees = async (req, res) => {
   try {
@@ -129,7 +198,6 @@ exports.getAllTrainees = async (req, res) => {
     });
   }
 };
-
 
 exports.getTraineeById = async (req, res) => {
   try {
@@ -156,7 +224,6 @@ exports.getTraineeById = async (req, res) => {
     });
   }
 };
-
 
 exports.updateTrainee = async (req, res) => {
   try {
@@ -189,7 +256,6 @@ exports.updateTrainee = async (req, res) => {
   }
 };
 
-
 exports.deleteTrainee = async (req, res) => {
   try {
     const trainee = await Trainee.findOneAndDelete({ traineeId: req.params.id });
@@ -214,7 +280,6 @@ exports.deleteTrainee = async (req, res) => {
   }
 };
 
-
 exports.getTraineesByStatus = async (req, res) => {
   try {
     const trainees = await Trainee.find({ status: req.params.status })
@@ -235,7 +300,6 @@ exports.getTraineesByStatus = async (req, res) => {
   }
 };
 
-
 exports.getDashboardMetrics = async (req, res) => {
   try {
     const totalTrainees = await Trainee.countDocuments();
@@ -243,7 +307,6 @@ exports.getDashboardMetrics = async (req, res) => {
     const ongoingCount = await Trainee.countDocuments({ status: 'Ongoing' });
     const completedCount = await Trainee.countDocuments({ status: 'Completed' });
     
-
     const stackDistribution = await Trainee.aggregate([
       {
         $lookup: {
@@ -261,7 +324,6 @@ exports.getDashboardMetrics = async (req, res) => {
         }
       }
     ]);
-    
     
     const topTrainings = await Trainee.aggregate([
       {
@@ -290,7 +352,6 @@ exports.getDashboardMetrics = async (req, res) => {
       { $limit: 5 }
     ]);
     
- 
     const recentTrainees = await Trainee.find()
       .populate('employeeId', 'employeeId employeeName')
       .populate('trainingCode', 'trainingCode trainingName stack')
